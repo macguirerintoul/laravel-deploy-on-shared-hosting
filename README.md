@@ -47,6 +47,7 @@ www -> public_html
 
 To make the application accessible at your domain, we will be linking the `public_html` directory to the `public` directory of our Laravel application. However, because our Laravel project also contains sensitive information like `.env` files, we will keep these outside of `public_html`.
 
+### Create a `projects` directory
 Connect to your shared hosting/webserver via SSH or FTP. At the same level as the `public_html` directory, create a new directory to store the Laravel project. You can call it whatever you like, but we're going to call it `projects`.
 
 ```bash
@@ -54,17 +55,20 @@ $ mkdir projects
 $ cd projects
 ```
 
+### Pull your project's code
 If your code is stored on a Git server, you can clone your repository. Otherwise, copy your entire Laravel application to the `projects` directory.
 
 ```bash
 $ git clone http://[GIT_SERVER]/[REPO_NAME].git
 ```
 
+### Create symbolic links
 Next, we will create a symbolic link from the `www` and `public_html` directories in our shared hosting/webserver, to the `public` directory in our Laravel application. Go back to the account directory:
+
 ```bash
 $ cd ~ # go to your account directory
 # or
- $ cd .. # go up one level
+$ cd .. # go up one level
 ```
 
 Make sure you're in the correct directory by running ```$ ls``` and ensuring `public_html` is in the output. Next, make a backup of `public_html` if you like. **Note: this assumes there is nothing else in `public_html` that needs to be served.**
@@ -81,10 +85,13 @@ $ ln -s projects/repo-name/public public_html
 $ ln -s projects/repo-name/public www
 ```
 
+### Laravel configuration
 Now, we'll go back into our Laravel project and run some more commands.
+
 ```bash
 $ cd projects/repo-name
 ```
+
 If your application uses Laravel's `storage` directory, allow write permissions on it:
 
 ```bash

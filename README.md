@@ -133,7 +133,7 @@ alias git="/usr/local/cpanel/3rdparty/bin/git"
 
 [Instructions for installing Composer](https://getcomposer.org/doc/00-intro.md) can be found on the Composer website.
 
-> **4. Does this work for Lumen applications?**
+**4. Does this work for Lumen applications?**
 
 Because Laravel and Lumen are so similar, this should work for Lumen applications as well.
 
@@ -149,7 +149,7 @@ This guide has been tested on the following hosting providers. Feel free to subm
 * [GeekStorage*](https://www.geekstorage.com/)
 * [Site5](https://www.site5.com/)
 
-\*On [GeekStorage](https://www.geekstorage.com/), PHP had to be enabled via `.htaccess`. For PHP 7.2, add the following line to the `.htaccess` file in the `public` directory, or create it if it does not exist. For other PHP versions/more details, see [this StackOverflow post](https://stackoverflow.com/questions/12561203/how-to-change-php-version-in-htaccess-in-server).
+\*On GeekStorage, PHP had to be enabled via `.htaccess`. For PHP 7.2, add the following line to the `.htaccess` file in the `public` directory, or create it if it does not exist. For other PHP versions/more details, see [this StackOverflow post](https://stackoverflow.com/questions/12561203/how-to-change-php-version-in-htaccess-in-server).
 
 ```
 AddHandler application/x-httpd-php72 .php

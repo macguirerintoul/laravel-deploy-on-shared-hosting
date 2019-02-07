@@ -1,37 +1,30 @@
-# How to deploy Laravel applications on shared hosting
+# How to deploy a Laravel application on shared hosting/webserver
 [![API Documentation](http://img.shields.io/badge/en-English-brightgreen.svg)](README.md)
 [![API Documentation](http://img.shields.io/badge/es-Español-yellow.svg)](README-es.md)
 [![API Documentation](http://img.shields.io/badge/vi-Ti%E1%BA%BFng%20Vi%E1%BB%87t-yellow.svg)](README-vi.md)
 [![API Documentation](https://img.shields.io/badge/zh_CN-%E4%B8%AD%E6%96%87%EF%BC%88%E4%B8%AD%E5%9B%BD%E5%A4%A7%E9%99%86%EF%BC%89-yellow.svg)](README-zh_CN.md)
 
-The simple guide to deploy Laravel and Lumen application on shared hosting.
-
-For a quick version of the guide (many of you might already read about it), read my post on medium, "[The simple guide to deploy Laravel 5 application on shared hosting](https://medium.com/laravel-news/the-simple-guide-to-deploy-laravel-5-application-on-shared-hosting-1a8d0aee923e#.7y3pk6wrm)"
+This guide covers how to deploy a Laravel application on shared hosting or a webserver. This guide assumes that there is nothing else in the `public_html` directory that needs to be served.
 
 ## Requirements
+**SSH access to your shared hosting/webserver is required for this guide.**
 
-Before trying to deploy a Laravel application on a shared hosting, you need to make sure that the hosting services provide a fit [requirement to Laravel](https://laravel.com/docs/5.2#server-requirements). Basically, following items are required for Laravel 5.2:
+Before deploying a Laravel application to shared hosting, ensure the hosting provider offers the required software described in the [Laravel documentation](https://laravel.com/docs/5.7/installation#server-requirements). If you're not sure if your hosting meets these requirements, feel free to try anyways. You can also try to install the software yourself using the corresponding package manager for your server's operating system.
 
-* PHP >= 5.5.9
+* PHP >= 7.1.3
 * OpenSSL PHP Extension
 * PDO PHP Extension
 * Mbstring PHP Extension
 * Tokenizer PHP Extension
+* XML PHP Extension
+* Ctype PHP Extension
+* JSON PHP Extension
+* BCMath PHP Extension
 
-Well, it also depends on the Laravel version you want to try to install, checkout the appropriate version of [Laravel server requirements documentation](https://laravel.com/docs/master).
+The server will also need [Composer](https://getcomposer.org/) to install Laravel dependencies, and you might like to use [Git](https://git-scm.com/) to pull your code onto the server.
 
-**Next, you need to have the SSH access permission for your hosting account; otherwise, none of these will work.**
-
-Besides PHP and those required extensions, you might need some utilities to make deployment much easier.
-
-* [Git](https://git-scm.com/)
-* [Composer](https://getcomposer.org/)
-
-I guess that's enough for good. Please refer to below sections to learn more about deployment.
-
-## Instruction
-
-Let's get started by understanding how we should organize the Laravel application structure. At first, you will have this or similar directories and files in your account,
+## Instructions
+Your shared hosting/webserver will likely have a directory structure similar to the one below.
 
 ```bash
 .bash_history
@@ -52,138 +45,118 @@ www -> public_html
 ...
 ```
 
-For the main account which tied with the main domain, the front-end code should stay in `public_html` or `www`. Since, we don't want to expose *Laravel things* (such as, .env, ...) to the outside world, we will hide them.
+To make the application accessible at your domain, we will be linking the `public_html` directory to the `public` directory of our Laravel application. However, because our Laravel project also contains sensitive information like `.env` files, we will keep these outside of `public_html`.
 
-Create a new directory to store all the code, name it `projects` or whatever you want to.
+Connect to your shared hosting/webserver via SSH or FTP. At the same level as the `public_html` directory, create a new directory to store the Laravel project. You can call it whatever you like, but we're going to call it `projects`.
 
 ```bash
 $ mkdir projects
 $ cd projects
 ```
 
-Alright, from here, just issue a git command to grab the code,
+If your code is stored on a Git server, you can clone your repository. Otherwise, copy your entire Laravel application to the `projects` directory.
 
 ```bash
-$ git clone http://[GIT_SERVER]/awesome-app.git
-$ cd awesome-app
+$ git clone http://[GIT_SERVER]/[REPO_NAME].git
 ```
 
-Next step is to make the `awesome-app/public` directory to map with `www` directory, symbol link is a great help for this, but we need to backup `public` directory first.
+Next, we will create a symbolic link from the `www` and `public_html` directories in our shared hosting/webserver, to the `public` directory in our Laravel application. Go back to the account directory:
+```bash
+$ cd ~ # go to your account directory
+# or
+ $ cd .. # go up one level
+```
+
+Make sure you're in the correct directory by running ```$ ls``` and ensuring `public_html` is in the output. Next, make a backup of `public_html` if you like. **Note: this assumes there is nothing else in `public_html` that needs to be served.**
 
 ```bash
-$ mv public public_bak
-$ ln -s ~/www public
-$ cp -a public_bak/* public/
-$ cp public_bak/.htaccess public/
+$ cp public_html public_html_backup # make a backup of public_html
+$ cp www www_backup # make a backup of www
 ```
 
-Because we created the symbol link from `www` directory to make it become the *virtual* `public` in project, so we have to update the `~/www/index.php` in order to replace paths with the new ones:
+Now, we will create the symbolic links. In the following few commands, make sure to replace `projects` with the name of the directory you created, and `repo-name` with the directory of your Laravel application.
 
-```diff
-- require __DIR__.’/../bootstrap/autoload.php’;
-+ require __DIR__.'/../projects/awesome-app/bootstrap/autoload.php';
-
-- $app = require_once __DIR__.’/../bootstrap/app.php’;
-+ $app = require_once __DIR__.'/../projects/awesome-app/bootstrap/app.php';
+```bash
+$ ln -s projects/repo-name/public public_html
+$ ln -s projects/repo-name/public www
 ```
 
-The updated file should be:
-
-```php
-require __DIR__.'/../projects/awesome-app/bootstrap/autoload.php';
-
-$app = require_once __DIR__.'/../projects/awesome-app/bootstrap/app.php';
+Now, we'll go back into our Laravel project and run some more commands.
+```bash
+$ cd projects/repo-name
 ```
-
-The hard part is done, the rest is to do some basic Laravel setup. Allow write permission to `storage` directory is important,
+If your application uses Laravel's `storage` directory, allow write permissions on it:
 
 ```bash
 $ chmod -R o+w storage
 ```
 
-**Edit your `.env` for proper configuration. Don't miss this!**
-
-Lastly, update the required packages for Laravel project using **composer** and add some necessary caches,
+Now, create a file called `.env` and enter the environment variables for your application. This will be similar to your local `.env`, but will likely need some tweaking for production.
 
 ```bash
-$ php composer install
-$ php composer dumpautoload -o
+$ vi .env
+```
+
+Install Laravel dependencies from `composer.lock`:
+
+```bash
+$ composer install
+$ composer dump-autoload
+```
+
+Create caches:
+```bash
 $ php artisan config:cache
 $ php artisan route:cache
 ```
 
-**Congratulation! You've successfully set up a Laravel application on a shared hosting service.**
+And navigate to your domain to see if your Laravel application is up and running.
 
-## FAQs
+**Congratulations! You've successfully set up a Laravel application on shared hosting/webserver.**
 
-> **1. How to acquire SSH access permission for my account?**
+## FAQ
 
-Just contact your hosting support, they will need to confirm your identity and will permit your SSH access in no time.
+**1. How can I get SSH access to my shared hosting/webserver?**
 
-> **2. Where is git? I can't find it.**
+This varies depending on your hosting provider. Please contact your hosting provider's support.
 
-`git` is often put under this place in CPanel hosting services, `/usr/local/cpanel/3rdparty/bin/git`. So you need to provide full path to `git` if you want to issue a `git` command; or, you can also create an alias for convenient use,
+**2. How do I install Git on my server?**
 
+This varies depending on your server's operating system. Please look up specific instructions for how to install Git on your operating system.
+
+If your server uses CPanel, Git can be found here: `/usr/local/cpanel/3rdparty/bin/git`. To use it, you can either replace `git` in any command with that path, or you can run the following command to create a temporary alias.
 ```bash
 alias git="/usr/local/cpanel/3rdparty/bin/git"
 ```
 
-> **3. How to get composer?**
+**3. How do I install Composer?**
 
-You can use FTP or SCP command to upload `composer.phar` to the host after downloading it locally. Or use `wget` and `curl` to get the file directly on host,
+[Instructions for installing Composer](https://getcomposer.org/doc/00-intro.md) can be found on the Composer website.
 
-```bash
-$ wget https://getcomposer.org/composer.phar
+> **4. Does this work for Lumen applications?**
 
-or
+Because Laravel and Lumen are so similar, this should work for Lumen applications as well.
 
-$ curl -sS https://getcomposer.org/installer | php — –filename=composer
-```
+## List of hosting providers tested
 
-> **4. Does this work with Lumen?**
-
-Well, Laravel and Lumen are like twins, so it applies the same with Lumen.
-
-> **5. I try to run `composer` but it shows nothing. What is the problem?**
-
-You need to provide a proper PHP configuration to run `composer`, which means, you cannot execute `composer` directly on some hosting service providers. So to execute `composer`, you will need to issue this command,
-
-```bash
-$ php -c php.ini composer [COMMAND]
-```
-
-> **6. Where can I get the `php.ini` to load for `composer`?**
-
-You can copy the default PHP configuration file `php.ini`, which is often at `/usr/local/lib/php.ini`, or find it by this command,
-
-```bash
-$ php -i | grep "php.ini"
-```
-
-## List of service providers tested and worked
-
-The following shared hosting service providers have been tested and worked perfectly 100%.
+This guide has been tested on the following hosting providers. Feel free to submit a pull request if you deploy successfully on a provider not listed here.
 
 * [NameCheap](https://www.namecheap.com/)
 * [JustHost](https://www.justhost.com/)
-* [bluehost](https://www.bluehost.com/)
+* [Bluehost](https://www.bluehost.com/)
 * [GoDaddy](https://godaddy.com/)
 * [HostGator](http://www.hostgator.com/)
-* [GeekStorage](https://www.geekstorage.com/)
+* [GeekStorage*](https://www.geekstorage.com/)
 * [Site5](https://www.site5.com/)
 
-Works on [GeekStorage](https://www.geekstorage.com/) shared plan but I had to enable PHP 5.6 via `.htaccess`
+\*On [GeekStorage](https://www.geekstorage.com/), PHP had to be enabled via `.htaccess`. For PHP 7.2, add the following line to the `.htaccess` file in the `public` directory, or create it if it does not exist. For other PHP versions/more details, see [this StackOverflow post](https://stackoverflow.com/questions/12561203/how-to-change-php-version-in-htaccess-in-server).
 
 ```
-AddHandler application/x-httpd-php56 .php
+AddHandler application/x-httpd-php71 .php
 ```
 
-If you found any hosting providers that works, please tell me, I will update the list for others to know about them, too.
+## Troubleshooting
+If the above steps haven't worked for you, feel free to [submit an issue](https://github.com/petehouston/laravel-deploy-on-shared-hosting/issues) detailing any problems you encounter.
 
-## Still trouble?
-
-If you still fail to deploy Laravel applications after following all above steps. Provide me [your issue](https://github.com/petehouston/laravel-deploy-on-shared-hosting/issues) in details, I will help you out.
-
-## Contribution Guide
-
+## Contributing
 Free free to fork the project and submit [a pull request](https://github.com/petehouston/laravel-deploy-on-shared-hosting/pulls).

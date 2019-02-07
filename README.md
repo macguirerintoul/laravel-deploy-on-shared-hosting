@@ -152,7 +152,7 @@ This guide has been tested on the following hosting providers. Feel free to subm
 \*On [GeekStorage](https://www.geekstorage.com/), PHP had to be enabled via `.htaccess`. For PHP 7.2, add the following line to the `.htaccess` file in the `public` directory, or create it if it does not exist. For other PHP versions/more details, see [this StackOverflow post](https://stackoverflow.com/questions/12561203/how-to-change-php-version-in-htaccess-in-server).
 
 ```
-AddHandler application/x-httpd-php71 .php
+AddHandler application/x-httpd-php72 .php
 ```
 
 ## Troubleshooting

@@ -123,11 +123,23 @@ And navigate to your domain to see if your Laravel application is up and running
 
 ## FAQ
 
-**1. How can I get SSH access to my shared hosting/webserver?**
+**I'm getting a 403 error when trying to view my application.**
+
+This likely means that the permissions for files/directories in the `public` directory aren't correct. Try running `$ chmod -R u+rwX,go+rX,go-w public`, where `public` is your project's `public` directory.
+
+**I'm getting a 500 error when trying to view my application.**
+
+This likely means that there is an exception being thrown somewhere in the application (did you configure your `.env` file?). Check the `error_log` file in `public_html` for errors.
+
+**I'm getting an error that says "directory/file "/path/to/dir/or/file" is writeable by group".**
+
+This is a permissions error. Try running `$ chmod -R u+rwX,go+rX,go-w public`, where `public` is your project's `public` directory.
+
+**How can I get SSH access to my shared hosting/webserver?**
 
 This varies depending on your hosting provider. Please contact your hosting provider's support.
 
-**2. How do I install Git on my server?**
+**How do I install Git on my server?**
 
 This varies depending on your server's operating system. Please look up specific instructions for how to install Git on your operating system.
 
@@ -136,11 +148,11 @@ If your server uses CPanel, Git can be found here: `/usr/local/cpanel/3rdparty/b
 alias git="/usr/local/cpanel/3rdparty/bin/git"
 ```
 
-**3. How do I install Composer?**
+**How do I install Composer?**
 
 [Instructions for installing Composer](https://getcomposer.org/doc/00-intro.md) can be found on the Composer website.
 
-**4. Does this work for Lumen applications?**
+**Does this work for Lumen applications?**
 
 Because Laravel and Lumen are so similar, this should work for Lumen applications as well.
 
